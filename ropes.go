@@ -3,7 +3,6 @@ package main
 import (
 	"cart/w4"
 	"math"
-	"strconv"
 )
 
 type Point struct {
@@ -11,6 +10,16 @@ type Point struct {
 	PreviousPosition Vector
 	IsLocked         bool
 	TimeOffset       uint64
+	Sticks           []*Stick
+}
+
+func (p *Point) AddStick(stick *Stick) *Point {
+	p.Sticks = append(p.Sticks, stick)
+	return p
+}
+
+func (p *Point) GetMotion() Vector {
+	return p.Position.Sub(p.PreviousPosition)
 }
 
 func (p *Point) Draw() {
@@ -29,6 +38,39 @@ type Stick struct {
 	PointA *Point
 	PointB *Point
 	Length float64
+}
+
+func (s *Stick) GetVector() Vector {
+	return s.PointB.Position.Sub(s.PointA.Position)
+}
+
+func (s *Stick) GetDistance(point Vector) float64 {
+	ab := s.GetVector()
+	ap := point.Sub(s.PointA.Position)
+	bp := point.Sub(s.PointB.Position)
+
+	abbp := (ab.X*bp.X + ab.Y*bp.Y)
+	abap := (ab.X*ap.X + ab.Y*ap.Y)
+
+	if abbp > 0 {
+		return bp.Len()
+	} else if abap < 0 {
+		return ap.Len()
+	}
+	mod := ab.Len()
+	return math.Abs(ab.X*ap.Y-ab.Y*ab.X) / mod
+}
+
+func (s *Stick) GetPosition(offset float64) Vector {
+	diff := s.GetVector()
+	return s.PointA.Position.Sum(diff.MulScalar(offset))
+}
+
+func (s *Stick) GetOffset(p Vector) float64 {
+	ab := s.GetVector()
+	ap := p.Sub(s.PointA.Position)
+	projection := ap.ProjectTo(ab)
+	return projection.Len() / ab.Len()
 }
 
 func (s *Stick) Draw() {
@@ -90,12 +132,13 @@ func CreateRope(start Vector, end Vector, divisions int) ([]*Point, []*Stick) {
 			diffX := pos.X - lastPoint.Position.X
 			diffY := pos.Y - lastPoint.Position.Y
 			len := math.Sqrt(diffX*diffX + diffY*diffY)
-			w4.Trace("Length between points is " + strconv.FormatFloat(len, 'f', 3, 64))
 			stick := Stick{
 				PointA: lastPoint,
 				PointB: &point,
 				Length: len,
 			}
+			stick.PointA.AddStick(&stick)
+			stick.PointB.AddStick(&stick)
 			sticks = append(sticks, &stick)
 		}
 		points = append(points, &point)

@@ -32,19 +32,20 @@ func start() {
 	w4.PALETTE[1] = 0x012824
 	w4.PALETTE[2] = 0x265935
 	w4.PALETTE[3] = 0xff4d6d
-	player = &Player{
-		Position: Vector{80, 80},
-		Speed:    Vector{},
-		Gamepad:  w4.GAMEPAD1,
-	}
 	for i := 0; i < 4; i++ {
 		p, s := CreateRope(
 			Vector{0, rand.Float64()*40 + float64(i*40)},
 			Vector{160, rand.Float64()*40 + float64(i*40)},
-			15,
+			10,
 		)
 		points = append(points, p...)
 		sticks = append(sticks, s...)
+	}
+	player = &Player{
+		Position:     Vector{80, 80},
+		Speed:        Vector{},
+		Gamepad:      w4.GAMEPAD1,
+		StickGrabbed: sticks[rand.Intn(len(sticks)-1)],
 	}
 }
 
