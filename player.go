@@ -3,6 +3,7 @@ package main
 import (
 	"cart/w4"
 	"math"
+	"strconv"
 )
 
 type Player struct {
@@ -13,30 +14,34 @@ type Player struct {
 	StickOffset  float64
 	GrabTimeout  uint
 	Gamepad      *uint8
+	GamepadLast  uint8
 }
 
 func (p *Player) Update() {
-	p.Speed.X = 0
+	lastGamepad := *p.Gamepad & (*p.Gamepad ^ p.GamepadLast)
+	p.GamepadLast = *p.Gamepad
 	if p.GrabTimeout > 0 {
 		p.GrabTimeout--
-	}
-	if *p.Gamepad&w4.BUTTON_LEFT != 0 {
-		p.Speed.X -= 1
-	}
-	if *p.Gamepad&w4.BUTTON_RIGHT != 0 {
-		p.Speed.X += 1
 	}
 	isJumping := *p.Gamepad&w4.BUTTON_DOWN == 0
 	p.Speed.Y = math.Min(4, p.Speed.Y+gravity)
 	if p.StickGrabbed != nil {
 		p.Speed.Y = 0
+		p.Speed.X = 0
 		//		p.Position = p.PointGrabbed.Position
 		if *p.Gamepad&w4.BUTTON_LEFT != 0 {
-			p.StickOffset -= 0.1
+			p.Speed.X -= 1
 		}
 		if *p.Gamepad&w4.BUTTON_RIGHT != 0 {
-			p.StickOffset += 0.1
+			p.Speed.X += 1
 		}
+		if *p.Gamepad&w4.BUTTON_UP != 0 {
+			p.Speed.Y -= 1
+		}
+		if *p.Gamepad&w4.BUTTON_DOWN != 0 {
+			p.Speed.Y += 1
+		}
+		p.MoveOnRope(p.Speed)
 		if p.StickOffset < 0 {
 			point := p.StickGrabbed.PointA
 			if len(point.Sticks) == 1 {
@@ -56,11 +61,14 @@ func (p *Player) Update() {
 			}
 		}
 		p.Position = p.StickGrabbed.GetPosition(p.StickOffset)
-		if *p.Gamepad&w4.BUTTON_2 != 0 {
+		if lastGamepad&w4.BUTTON_2 != 0 {
 			p.GrabTimeout = 10
 			if isJumping {
-				p.GrabTimeout = 5
-				p.Speed.Y = -4.5
+				p.GrabTimeout = 10
+				p.Speed = p.Speed.MulScalar(2)
+				if p.Speed.Y <= 0 {
+					p.Speed.Y -= 1 * 2
+				}
 				impulse := p.Speed.MulScalar(-1)
 				p.StickGrabbed.PointA.Position.MoveVec(impulse)
 				p.StickGrabbed.PointB.Position.MoveVec(impulse)
@@ -90,6 +98,7 @@ func (p *Player) Update() {
 				}
 			}
 			if stickDistance < 4 {
+				w4.Trace(strconv.FormatFloat(stickDistance, 'f', 3, 64))
 				p.StickGrabbed = selectedStick
 				p.StickOffset = selectedStick.GetOffset(p.Position)
 				p.StickGrabbed.PointA.Position.MoveVec(p.Speed)
@@ -97,6 +106,12 @@ func (p *Player) Update() {
 			}
 		}
 	}
+}
+
+func (p *Player) MoveOnRope(motion Vector) {
+	newPos := p.Position.Sum(motion)
+	offset := p.StickGrabbed.GetOffset(newPos)
+	p.StickOffset = offset
 }
 
 func (p *Player) Draw() {

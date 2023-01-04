@@ -5,26 +5,18 @@ import (
 	"math/rand"
 )
 
-var smiley = [8]byte{
-	0b11000011,
-	0b10000001,
-	0b00100100,
-	0b00100100,
-	0b00000000,
-	0b00100100,
-	0b10011001,
-	0b11000011,
-}
-
 var gravity = 0.2
 var points []*Point = []*Point{}
 var sticks []*Stick = []*Stick{}
 var player *Player
 var frame uint64 = 0
 var lightIndex uint64 = 0
+var camX = 0
+var camY = 0
 
 //go:export start
 func start() {
+
 	rand.Seed(654654321348654)
 	points = []*Point{}
 	sticks = []*Stick{}
@@ -34,10 +26,20 @@ func start() {
 	w4.PALETTE[3] = 0xff4d6d
 	for i := 0; i < 4; i++ {
 		p, s := CreateRope(
-			Vector{0, rand.Float64()*40 + float64(i*40)},
 			Vector{160, rand.Float64()*40 + float64(i*40)},
+			Vector{0, rand.Float64()*40 + float64(i*40)},
 			10,
 		)
+		points = append(points, p...)
+		sticks = append(sticks, s...)
+	}
+	for i := 0; i < 3; i++ {
+		p, s := CreateRope(
+			Vector{float64(i*30 + 30), 0},
+			Vector{float64(i*30 + 40), 100},
+			10,
+		)
+		p[len(p)-1].IsLocked = false
 		points = append(points, p...)
 		sticks = append(sticks, s...)
 	}

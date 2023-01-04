@@ -58,7 +58,7 @@ func (s *Stick) GetDistance(point Vector) float64 {
 		return ap.Len()
 	}
 	mod := ab.Len()
-	return math.Abs(ab.X*ap.Y-ab.Y*ab.X) / mod
+	return math.Abs(ab.X*ap.Y-ab.Y*ap.X) / mod
 }
 
 func (s *Stick) GetPosition(offset float64) Vector {
@@ -70,7 +70,12 @@ func (s *Stick) GetOffset(p Vector) float64 {
 	ab := s.GetVector()
 	ap := p.Sub(s.PointA.Position)
 	projection := ap.ProjectTo(ab)
-	return projection.Len() / ab.Len()
+	dot := ab.Dot(ap)
+	result := projection.Len() / ab.Len()
+	if dot < 0 {
+		result *= -1
+	}
+	return result
 }
 
 func (s *Stick) Draw() {
