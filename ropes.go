@@ -31,7 +31,7 @@ func (p *Point) Draw() {
 	if fr > 40 {
 		*w4.DRAW_COLORS = 0x34
 	}
-	w4.Oval(int(p.Position.X)-2, int(p.Position.Y)-2, 4, 4)
+	w4.Oval(int(p.Position.X)-2-camX, int(p.Position.Y)-2-camY, 4, 4)
 }
 
 type Stick struct {
@@ -80,8 +80,8 @@ func (s *Stick) GetOffset(p Vector) float64 {
 
 func (s *Stick) Draw() {
 	*w4.DRAW_COLORS = 0x3
-	w4.Line(int(s.PointA.Position.X), int(s.PointA.Position.Y),
-		int(s.PointB.Position.X), int(s.PointB.Position.Y))
+	w4.Line(int(s.PointA.Position.X)-camX, int(s.PointA.Position.Y)-camY,
+		int(s.PointB.Position.X)-camX, int(s.PointB.Position.Y)-camY)
 }
 
 func Simulate(points []*Point, sticks []*Stick) {

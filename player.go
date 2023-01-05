@@ -106,6 +106,7 @@ func (p *Player) Update() {
 			}
 		}
 	}
+	p.Position.X = math.Min(math.Max(0, p.Position.X), 320)
 }
 
 func (p *Player) MoveOnRope(motion Vector) {
@@ -116,5 +117,5 @@ func (p *Player) MoveOnRope(motion Vector) {
 
 func (p *Player) Draw() {
 	*w4.DRAW_COLORS = 0x34
-	w4.Rect(int(p.Position.X)-4, int(p.Position.Y)-4, 8, 8)
+	w4.Rect(int(p.Position.X)-4-camX, int(p.Position.Y)-4-camY, 8, 8)
 }
