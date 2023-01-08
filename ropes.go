@@ -9,7 +9,7 @@ type Point struct {
 	Position         Vector
 	PreviousPosition Vector
 	IsLocked         bool
-	TimeOffset       uint64
+	TimeOffset       uint16
 	Sticks           []*Stick
 }
 
@@ -24,14 +24,15 @@ func (p *Point) GetMotion() Vector {
 
 func (p *Point) Draw() {
 	*w4.DRAW_COLORS = 0x31
-	fr := (frame + p.TimeOffset) % 60
+	fr := (frame + uint64(p.TimeOffset)) % 60
 	if fr > 20 {
-		*w4.DRAW_COLORS = 0x32
-	}
-	if fr > 40 {
 		*w4.DRAW_COLORS = 0x34
 	}
+	if fr > 40 {
+		*w4.DRAW_COLORS = 0x32
+	}
 	w4.Oval(int(p.Position.X)-2-camX, int(p.Position.Y)-2-camY, 4, 4)
+
 }
 
 type Stick struct {
@@ -129,7 +130,7 @@ func CreateRope(start Vector, end Vector, divisions int) ([]*Point, []*Stick) {
 			Position:         pos,
 			PreviousPosition: pos,
 			IsLocked:         (i == 0 || i == divisions),
-			TimeOffset:       lightIndex * 153,
+			TimeOffset:       uint16(lightIndex * 147),
 		}
 		lightIndex++
 		if i != 0 {
