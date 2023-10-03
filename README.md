@@ -4,6 +4,8 @@ A game written in Go for the [WASM-4](https://wasm4.org) fantasy console.
 
 ## Building
 
+*REQUIRES GO 1.19 AND TINYGO 0.26*
+
 Build the cart by running:
 
 ```shell
